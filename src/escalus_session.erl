@@ -22,6 +22,24 @@
          bind/3,
          session/3]).
 
+%% Public Types
+-type feature() :: {atom(), boolean()}.
+-export_type([feature/0]).
+
+-type features() :: [feature()].
+-export_type([features/0]).
+
+-define(CONNECTION_STEP, (escalus_connection:transport(),
+                          escalus_users:spec(),
+                          features()) -> step_state()).
+-type step() :: fun(?CONNECTION_STEP).
+-export_type([step/0]).
+
+-type step_state() :: {escalus_connection:transport(),
+                       escalus_users:spec(),
+                       features()}.
+-export_type([step_state/0]).
+
 -include_lib("exml/include/exml.hrl").
 -define(DEFAULT_RESOURCE, <<"escalus-default-resource">>).
 
@@ -89,6 +107,7 @@ use_ssl(Props, Features) ->
         _ -> false
     end.
 
+-spec can_use_compression(escalus_users:spec(), features()) -> boolean().
 can_use_compression(Props, Features) ->
     false /= proplists:get_value(compression, Props, false) andalso
     false /= proplists:get_value(compression, Features).
@@ -97,10 +116,12 @@ can_use_compression(Props, Features) ->
 %%% New style connection initiation
 %%%===================================================================
 
+-spec start_stream/3 :: ?CONNECTION_STEP.
 start_stream(Conn, Props, [] = _Features) ->
     {Props1, Features} = start_stream(Conn, Props),
     {Conn, Props1, Features}.
 
+-spec maybe_use_ssl/3 :: ?CONNECTION_STEP.
 maybe_use_ssl(Conn, Props, Features) ->
     case use_ssl(Props, Features) of
         true ->
@@ -110,6 +131,7 @@ maybe_use_ssl(Conn, Props, Features) ->
             {Conn, Props, Features}
     end.
 
+-spec maybe_use_compression/3 :: ?CONNECTION_STEP.
 maybe_use_compression(Conn, Props, Features) ->
     case can_use_compression(Props, Features) of
         true ->
@@ -119,12 +141,15 @@ maybe_use_compression(Conn, Props, Features) ->
             {Conn, Props, Features}
     end.
 
+-spec authenticate/3 :: ?CONNECTION_STEP.
 authenticate(Conn, Props, Features) ->
     {Conn, authenticate(Conn, Props), Features}.
 
+-spec bind/3 :: ?CONNECTION_STEP.
 bind(Conn, Props, Features) ->
     {Conn, bind(Conn, Props), Features}.
 
+-spec session/3 :: ?CONNECTION_STEP.
 session(Conn, Props, Features) ->
     {Conn, session(Conn, Props), Features}.
 
@@ -132,12 +157,14 @@ session(Conn, Props, Features) ->
 %%% Helpers
 %%%===================================================================
 
+-spec get_stream_features(xmlterm()) -> features().
 get_stream_features(Features) ->
     [
         {compression, get_compression(Features)},
         {starttls, get_starttls(Features)}
     ].
 
+-spec get_compression(xmlterm()) -> boolean().
 get_compression(Features) ->
     case exml_query:subelement(Features, <<"compression">>) of
         #xmlel{children = MethodEls} ->
@@ -145,6 +172,7 @@ get_compression(Features) ->
         _ -> false
     end.
 
+-spec get_starttls(xmlterm()) -> boolean().
 get_starttls(Features) ->
     case exml_query:subelement(Features, <<"starttls">>) of
         undefined ->
