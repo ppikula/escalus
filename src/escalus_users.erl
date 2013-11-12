@@ -37,6 +37,10 @@
          delete_user/2,
          get_usp/2]).
 
+% Public Types
+-type spec() :: [{escalus_config:key(), any()}].
+-export_type([spec/0]).
+
 % deprecated API
 -export([create_user/1,
          delete_user/1,
