@@ -124,8 +124,8 @@ compress(Method) ->
 -spec iq(binary(), [xmlterm()]) -> #xmlel{}.
 iq(Type, Body) ->
     #xmlel{name = <<"iq">>,
-           attrs=[{<<"type">>, Type},
-                  {<<"id">>, id()}],
+           attrs = [{<<"type">>, Type},
+                    {<<"id">>, id()}],
            children = Body}.
 
 iq(To, Type, Body) ->
@@ -157,8 +157,8 @@ bind(Resource) ->
 -spec session() -> #xmlel{}.
 session() ->
     NS = <<"urn:ietf:params:xml:ns:xmpp-session">>,
-    iq(<<"set">>, #xmlel{name = <<"session">>,
-                         attrs = [{<<"xmlns">>, NS}]}).
+    iq(<<"set">>, [#xmlel{name = <<"session">>,
+                          attrs = [{<<"xmlns">>, NS}]}]).
 
 to(Stanza, Recipient) when is_binary(Recipient) ->
     setattr(Stanza, <<"to">>, Recipient);
@@ -453,7 +453,7 @@ service_discovery(Server) ->
 auth(Mechanism) ->
     auth(Mechanism, []).
 
--spec auth(binary(), #xmlcdata{}) -> #xmlel{}.
+-spec auth(binary(), [#xmlcdata{}]) -> #xmlel{}.
 auth(Mechanism, Children) ->
     #xmlel{name = <<"auth">>,
            attrs = [{<<"xmlns">>, ?NS_SASL},
