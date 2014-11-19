@@ -141,6 +141,7 @@ init([Args, Owner]) ->
     Host = proplists:get_value(host, Args, <<"localhost">>),
     Port = proplists:get_value(port, Args, 5222),
     EventClient = proplists:get_value(event_client, Args),
+    InterfaceIp = proplists:get_value(ip, Args),
 
     OnReplyFun = proplists:get_value(on_reply, Args, fun(_) -> ok end),
     OnRequestFun = proplists:get_value(on_request, Args, fun(_) -> ok end),
@@ -155,7 +156,11 @@ init([Args, Owner]) ->
          end,
 
     Address = host_to_inet(Host),
-    Opts = [binary, {active, once}],
+    BasicOpts = [binary, {active, once}],
+    Opts = case InterfaceIp of
+               undefined -> BasicOpts;
+               _ -> BasicOpts ++ {ip, InterfaceIp}
+           end,
     {ok, Socket} = do_connect(Address, Port, Opts, OnConnectFun),
     {ok, Parser} = exml_stream:new_parser(),
     {ok, #state{owner = Owner,
