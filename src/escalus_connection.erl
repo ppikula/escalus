@@ -33,7 +33,7 @@
 %% Private
 -export([connection_step/2]).
 
--define(TIMEOUT, 1000).
+-define(TIMEOUT, 10000).
 
 %%%===================================================================
 %%% Public API
